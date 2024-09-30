@@ -14,11 +14,13 @@
 #define YARDFORCE_HATCH_HPP
 
 #include <Arduino.h>
-#include <list>
+#include <vector>
 
 class Hatch
 {
 public:
+    Hatch();
+
     struct FakeButton
     {
         uint8_t button_id;
@@ -33,7 +35,8 @@ public:
     void process_queued();
 
 protected:
-    std::list<FakeButton> fake_button_queue;
+    std::vector<FakeButton> fake_button_queue;
+    static const size_t max_queue_size = 10;
 };
 
 #endif // YARDFORCE_HATCH_HPP

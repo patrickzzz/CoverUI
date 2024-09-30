@@ -13,10 +13,13 @@
 
 #include <Arduino.h>
 // #include <stdint.h>
-#include <list>
 // #include "include/Hatch.hpp"
 // #include "include/LEDcontrol.hpp"
 #include "include/main.h"
+
+    Hatch::Hatch() {
+        fake_button_queue.reserve(max_queue_size);
+    }
 
 /**
  * @brief Handle any kind of pressed button result like:
@@ -38,7 +41,9 @@ unsigned int Hatch::handle_button(unsigned int button_id, uint32_t press_time)
 
 void Hatch::queue_button(uint8_t button_id, uint8_t press_duration, uint32_t delay)
 {
-    fake_button_queue.push_back({button_id, press_duration, millis() + delay});
+    if(fake_button_queue.size() < max_queue_size) {
+        fake_button_queue.push_back({button_id, press_duration, millis() + delay});
+    }
 };
 
 /**
@@ -49,12 +54,16 @@ void Hatch::process_queued()
     if (fake_button_queue.empty())
         return;
 
-    for (auto it = fake_button_queue.begin(); it != fake_button_queue.end(); ++it)
+    for (size_t i = 0; i < fake_button_queue.size();)
     {
-        if (millis() >= it->delay_end)
+        if (millis() >= fake_button_queue[i].delay_end)
         {
-            buttons.send(it->button_id, it->press_duration);
-            it = fake_button_queue.erase(it);
+            buttons.send(fake_button_queue[i].button_id, fake_button_queue[i].press_duration);
+            fake_button_queue.erase(fake_button_queue.begin() + i); // Löschen des aktuellen Elements
+        }
+        else
+        {
+            i++;
         }
     }
-};
+}
